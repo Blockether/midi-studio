@@ -7,3 +7,7 @@ code, and publish its commits back to this repository.
 
 - `src/shop/` is a small Python package. Run its tests with `python3 -m pytest`.
 - `src/shop/pricing.clj` is a small Clojure namespace with the same price rules.
+
+## Releases
+
+Each commit on `main` becomes the project of the next playground worker.
