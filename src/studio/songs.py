@@ -191,6 +191,51 @@ def copacabana_sunshine() -> list[stream.Part]:
     ]
 
 
+def brushfire_on_south_rampart() -> list[stream.Part]:
+    """A shuffle blues in A: an electric piano, a walking bass, a tenor sax and brushed drums."""
+    tonality = key.Key("A", "mixolydian")  # the flat seventh turns every chord into a dominant seventh
+    figures = ["I7"] * 4 + ["I7", "IV7", "I7", "I7", "IV7", "IV7", "I7", "I7", "V7", "IV7", "I7", "V7"] * 2
+    figures += ["I7", "I7", "IV7", "I7"]  # the intro vamp, the form twice and the tag: thirty-two bars
+    chords = [roman.RomanNumeral(figure, tonality).pitches for figure in figures]
+    hits = [1, TWO_THIRDS, THIRD, 1, TWO_THIRDS, THIRD]  # a shuffled bar: one, two-and, three, four-and
+    blues = [pitch.Pitch(tone) for tone in ("A3", "C4", "D4", "E-4", "E4", "G4", "A4", "C5", "D5", "E-5", "E5")]
+    fill = [blues[number] for number in (1, 2, 4, 5, 6, 7)]  # the turn bars climb the blues scale
+    turn = (3, 7, 11, 15, 27)  # bars four, eight, twelve, sixteen and twenty-eight
+    call = [[0, 2, 4, 6, 5, 4], [3, 4, 6, None, None, None]]  # a two-bar phrase
+    answer = [[6, 5, 4, 3, 1, 0]]  # answered by one bar
+    piano, bass, sax, beat = [], [], [], []
+    for bar, tones in enumerate(chords):
+        start = 4 * bar
+        root, third, fifth, seventh = tones
+        voicing = [tone.transpose(-12) for tone in (third, fifth, seventh)]  # rootless, from C4 to D5
+        if bar == len(chords) - 1:  # bar thirty-two: the tag holds the whole A7 to the end
+            piano.append((start, 4, [tone.transpose(-12) for tone in tones]))
+            bass += line([4], [root.transpose(-24)], start)
+        else:
+            walk = [tone.transpose(-24) for tone in (root, third, fifth)]
+            walk.append(chords[bar + 1][0].transpose(-25))  # a chromatic approach into the next change
+            bass += line([1] * 4, walk, start)
+            if bar in turn:  # the stabs give way to six swung eighths
+                piano += line([1] + [TWO_THIRDS, THIRD] * 3, [voicing, *fill], start)
+            else:
+                piano += line(hits, [voicing, None, voicing, None, None, None], start)
+        drag = SNARE if bar % 2 == 0 else None  # the brush drag on the and-of-four, bar thirty-one last
+        beat += line(hits, [KICK, SNARE, None, KICK, SNARE, drag], start)  # kick on one and three
+        beat += line(hits, [None, HAT, None, None, HAT, None], start)  # the chick on two and four
+    for chorus, lift in enumerate((0, 2)):  # the second chorus answers a third higher
+        for bar, degrees in enumerate((call + answer) * 4, start=4 + 12 * chorus):
+            if bar in (4, 16):  # bars five and seventeen breathe on the downbeat
+                degrees = [None, *degrees[1:]]
+            sounds = [blues[number + lift] if number is not None else None for number in degrees]
+            sax += line(hits, sounds, 4 * bar)
+    return [
+        part("Electric Piano", 5, 72, piano),
+        part("Acoustic Bass", 32, 96, bass),  # General MIDI program thirty-three, one-based
+        part("Tenor Sax", 66, 88, sax),
+        drums(76, beat),
+    ]
+
+
 @dataclass(frozen=True)
 class Song:
     """One song of the studio."""
@@ -208,6 +253,7 @@ CATALOG = [
     Song("twelve-bar", "Twelve-bar blues", "A blues", 120, twelve_bar),
     Song("little-lantern", "Little Lantern", "D major", 60, little_lantern),
     Song("copacabana-sunshine", "Copacabana Sunshine", "G major", 132, copacabana_sunshine),
+    Song("brushfire-on-south-rampart", "Brushfire on South Rampart", "A blues", 132, brushfire_on_south_rampart),
 ]
 
 
