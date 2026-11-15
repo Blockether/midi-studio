@@ -139,6 +139,56 @@ def little_lantern() -> list[stream.Part]:
     ]
 
 
+def copacabana_sunshine() -> list[stream.Part]:
+    """A bright bossa nova in G major: a nylon guitar, an upright bass, a flute and a light clave."""
+    tonality = key.Key("G")
+    figures = ["I", "vi7", "ii7", "V7"] * 2 + ["I", "iii7", "IV", "V7", "IV", "iii7", "ii7", "V7"]
+    figures += ["I", "vi7", "ii7", "V7", "I", "IV", "V7", "I"]
+    chords = [roman.RomanNumeral(figure, "G").pitches for figure in figures]
+    approach = (2, 3, 10, 11, 18, 19)  # the two bars before each section change
+    guitar, bass, beat = [], [], []
+    for bar, tones in enumerate(chords):
+        start = 4 * bar
+        root, fifth = tones[0].transpose(-24), tones[2].transpose(-24)
+        voicing = [tone.transpose(-12) for tone in tones]
+        # the flute rests in bars nine to twelve, so the comping thins to the and-of-two and four
+        stabs = [None, voicing, voicing] if 8 <= bar < 12 else [voicing] * 3
+        guitar += line([1.5, 1.5, 1], stabs, start)
+        if bar in approach:  # a chromatic approach note on the and-of-four walks into the next section
+            bass += line([2, 1.5, 0.5], [root, fifth, chords[bar + 1][0].transpose(-25)], start)
+        else:
+            bass += line([2, 2], [root, fifth], start)
+        beat += line([0.5, 2, 0.5, 1], [KICK, None, KICK, None], start)  # kick on one, ghost on the and-of-three
+        beat += line([1.5, 1.5, 1], [SNARE] * 3, start)  # the one-bar bossa clave: one, and-of-two and four
+        beat += line([0.5] * 8, [HAT] * 8, start)
+    for bar, steps in enumerate([[4, 2, 0, 2], [2, 4, 5, 4], [3, 5, 4, 3], [4]], start=8):
+        pitches = [step(tonality, number, -1) for number in steps]
+        guitar += line([3.5] if bar == 11 else [0.5, 1.5, 0.5, 0.5], pitches, start=4 * bar + 0.5)
+    flute = []
+    for bar, steps in enumerate([[4, 2, 0, 1, 2], [2, 4, 5, 4, 2], [1, 3, 5, 4, 3], [4]], start=4):
+        lengths = [0.5, 3.5] if bar == 7 else [0.5] + [0.5] * 4 + [1.5]
+        flute += line(lengths, [None] + [step(tonality, number) for number in steps], start=4 * bar)
+    turns = [
+        [3, 4, 5, 4, 3, 2, 3, 4, 5, 3],
+        [2, 3, 4, 3, 2, 1, 2, 3, 4, 2],
+        [1, 2, 3, 2, 1, 0, 1, 2, 3, 1],
+        [4, 5, 6, 5, 4, 3, 4, 5, 6, 4],
+        [0, 2, 4, 2, 0, 2, 4, 5, 7, 4],
+        [5, 4, 2, 4, 5, 7, 5, 4, 2, 5],
+        [1, 3, 5, 3, 1, 3, 5, 6, 7, 5],
+        [6, 5, 4, 3, 2, 3, 4, 5, 4, 4],
+    ]
+    for bar, steps in enumerate(turns, start=12):  # bars thirteen to twenty turn in sixteenths
+        flute += line([0.25] * 8 + [1, 1], [step(tonality, number) for number in steps], start=4 * bar)
+    flute += line([12], [step(tonality, 7)], start=80)  # the outro holds one high G and rests in bar twenty-four
+    return [
+        part("Nylon Guitar", 24, 62, guitar),
+        part("Upright Bass", 32, 70, bass),
+        part("Flute", 73, 66, flute),
+        drums(52, beat),
+    ]
+
+
 @dataclass(frozen=True)
 class Song:
     """One song of the studio."""
@@ -155,6 +205,7 @@ CATALOG = [
     Song("night-drive", "Night drive", "A minor", 112, night_drive),
     Song("twelve-bar", "Twelve-bar blues", "A blues", 120, twelve_bar),
     Song("little-lantern", "Little Lantern", "D major", 60, little_lantern),
+    Song("copacabana-sunshine", "Copacabana Sunshine", "G major", 132, copacabana_sunshine),
 ]
 
 
