@@ -58,16 +58,18 @@ def drums(velocity: int, events: Iterable[Event]) -> stream.Part:
 
 
 def row_row() -> list[stream.Part]:
-    """Row, row, row your boat as a round: the clarinet starts one bar after the flute."""
+    """Row, row, row your boat as a round: the clarinet starts one bar after the flute, the bassoon two bars."""
     tonality = key.Key("C")
     lengths = [1, 1, TWO_THIRDS, THIRD, 1, TWO_THIRDS, THIRD, TWO_THIRDS, THIRD, 2]
     lengths += [THIRD] * 12 + [TWO_THIRDS, THIRD, TWO_THIRDS, THIRD, 2]
     steps = [0, 0, 0, 1, 2, 2, 1, 2, 3, 4, 7, 7, 7, 4, 4, 4, 2, 2, 2, 0, 0, 0, 4, 3, 2, 1, 0]
     melody = [step(tonality, number) for number in steps]
+    bassoon = [step(tonality, number, -1) for number in steps]
     bass = [step(tonality, number, -2) for number in [0, -3, 0] * 5]
     return [
         part("Flute", 73, 100, line(lengths, melody)),
         part("Clarinet", 71, 84, line(lengths, melody, start=4)),
+        part("Bassoon", 70, 88, line(lengths, bassoon, start=8)),
         part("Bass", 32, 92, line([1, 1, 2] * 5, bass)),
     ]
 

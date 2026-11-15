@@ -27,10 +27,13 @@ def test_only_the_drums_use_channel_10(item):
     assert sum(event.channel == 10 for event in notes) == drum_notes
 
 
-def test_the_round_starts_the_second_voice_one_bar_later():
-    flute, clarinet, _ = songs.tracks(songs.song("row-row"))
+def test_the_round_enters_one_voice_per_bar_with_the_bassoon_an_octave_lower():
+    flute, clarinet, bassoon, _ = songs.tracks(songs.song("row-row"))
+    assert [track["notes"][0]["time"] for track in (flute, clarinet, bassoon)] == [0, 4, 8]
+    assert bassoon["program"] == 70
     assert [note["pitch"] for note in flute["notes"]] == [note["pitch"] for note in clarinet["notes"]]
-    assert clarinet["notes"][0]["time"] - flute["notes"][0]["time"] == 4
+    assert [note["pitch"] - 12 for note in flute["notes"]] == [note["pitch"] for note in bassoon["notes"]]
+    assert [note["duration"] for note in bassoon["notes"]] == [note["duration"] for note in flute["notes"]]
 
 
 def test_a_scale_step_above_the_octave_keeps_the_key():
