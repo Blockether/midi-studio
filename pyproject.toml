@@ -1,7 +1,7 @@
 [project]
 name = "studio"
 version = "0.1.0"
-description = "A MIDI studio for the Vis playground: music from Python code"
+description = "A MIDI studio: music from Python code"
 requires-python = ">=3.11"
 dependencies = ["music21"]
 

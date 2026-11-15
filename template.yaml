@@ -1,0 +1,74 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: MIDI Studio. One Lambda function with a public address.
+
+Parameters:
+  Image:
+    Type: String
+    Description: The image of the studio in Amazon ECR, with its digest.
+
+Resources:
+  Log:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AWS::StackName}"
+      RetentionInDays: 14
+
+  # The studio calls no AWS service. The role permits only a write to its own log.
+  Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: log
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: [logs:CreateLogStream, logs:PutLogEvents]
+                Resource: !GetAtt Log.Arn
+
+  Studio:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Ref AWS::StackName
+      PackageType: Image
+      Code: {ImageUri: !Ref Image}
+      Architectures: [arm64]
+      Role: !GetAtt Role.Arn
+      MemorySize: 1024
+      Timeout: 30
+      # The address is public. The limit protects the account and the cost.
+      ReservedConcurrentExecutions: 5
+      LoggingConfig: {LogGroup: !Ref Log}
+
+  Url:
+    Type: AWS::Lambda::Url
+    Properties:
+      TargetFunctionArn: !GetAtt Studio.Arn
+      AuthType: NONE
+
+  UrlPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Studio
+      Action: lambda:InvokeFunctionUrl
+      Principal: "*"
+      FunctionUrlAuthType: NONE
+
+  InvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref Studio
+      Action: lambda:InvokeFunction
+      Principal: "*"
+      InvokedViaFunctionUrl: true
+
+Outputs:
+  Url:
+    Description: The address of the studio
+    Value: !GetAtt Url.FunctionUrl
