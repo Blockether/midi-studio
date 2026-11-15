@@ -108,6 +108,37 @@ def twelve_bar() -> list[stream.Part]:
     ]
 
 
+def little_lantern() -> list[stream.Part]:
+    """A slow lullaby in D major: a music box tune, soft strings, a cello root and one quiet heartbeat."""
+    tonality = key.Key("D")
+    figures = ["I", "vi", "IV", "I", "I", "iii", "IV", "V", "vi", "iii", "IV", "V", "I", "ii", "V", "I"]
+    pad, cello, beat = [], [], []
+    for bar, figure in enumerate(figures):
+        start = 4 * bar
+        root, third, fifth = roman.RomanNumeral(figure, "D").pitches
+        if bar > 1:  # the strings stay silent for two bars, then hold one chord per bar
+            pad.append((start, 4, [tone.transpose(-12) for tone in (root, third, fifth)]))
+        if bar > 3:  # the cello answers the tune from bar five, on beats one and three
+            cello += line([2, 2], [root.transpose(-24)] * 2, start)
+        beat += line([1], [KICK], start)
+        if 8 <= bar < 12:  # the hi-hat counts beats two and four through the turn
+            beat += line([1, 0.5, 1.5, 0.5], [None, HAT, None, HAT], start)
+    lengths = [1, 1, 1, 1, 2, 2, 1, 1, 1, 1, 3, 1] * 2
+    lengths += [1, 1, 1, 1, 2, 2, 0.5, 0.5, 1, 1, 1, 3, 1]
+    lengths += [1, 1, 1, 1, 2, 2, 2, 2, 4]
+    steps = [0, 2, 4, 2, 5, 2, 3, 4, 5, 4, 2, None]
+    steps += [-7, -5, -3, -5, -3, -5, -4, -3, -2, -3, -3, None]
+    steps += [4, 5, 7, 5, 6, 4, 7, 8, 9, 8, 7, 6, None]
+    steps += [0, 2, 4, 2, 3, 1, 4, 1, 0]
+    melody = [step(tonality, number) if number is not None else None for number in steps]
+    return [
+        part("Music Box", 10, 70, line(lengths, melody)),
+        part("Soft Strings", 49, 48, pad),
+        part("Cello", 42, 40, cello),
+        drums(28, beat),
+    ]
+
+
 @dataclass(frozen=True)
 class Song:
     """One song of the studio."""
@@ -123,6 +154,7 @@ CATALOG = [
     Song("row-row", "Row, row, row your boat", "C major", 100, row_row),
     Song("night-drive", "Night drive", "A minor", 112, night_drive),
     Song("twelve-bar", "Twelve-bar blues", "A blues", 120, twelve_bar),
+    Song("little-lantern", "Little Lantern", "D major", 60, little_lantern),
 ]
 
 
