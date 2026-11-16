@@ -236,6 +236,45 @@ def brushfire_on_south_rampart() -> list[stream.Part]:
     ]
 
 
+def abendsegen() -> list[stream.Part]:
+    """A solemn chorale in F minor: four brass voices in block half notes, and eight soft timpani hits."""
+    tonality = key.Key("f")
+    timpani = 35  # the acoustic bass drum: bars one to eight stay a pure chorale without it
+    figures = ["i", "iv", "V", "i", "i", "v", "VI", "V7", "III", "VII", "VI", "V", "i", "iv", "V7", "i"]
+    voicing = {  # the tuba, the trombone, the muted trumpet and the trombone turn on beat three, as tone and octave
+        "i": ((0, -24), (1, -12), (2, -12), (1, -12)),
+        "iv": ((0, -24), (2, -24), (0, -12), (2, -24)),
+        "v": ((0, -24), (2, -24), (0, -12), (1, -24)),
+        "V": ((0, -24), (2, -24), (0, -12), (1, -24)),
+        "VI": ((0, -36), (1, -24), (0, -12), (2, -24)),
+        "V7": ((0, -24), (3, -24), (1, -12), (1, -24)),
+        "III": ((0, -24), (2, -24), (1, -12), (2, -24)),
+        "VII": ((0, -36), (1, -24), (0, -12), (2, -24)),
+    }
+    lengths = [2, 2] * 3 + [4] + [2, 2] * 3 + [4] + [2, 2] * 2 + [2, 1, 1] + [4] + [2, 2] * 2 + [4, 4]
+    names = ["A-4", "F4", "D-4", "F4", "E4", "G4", "A-4"] + ["A-4", "F4", "E-4", "G4", "A-4", "F4", "G4"]
+    names += ["E-4", "A-4", "B-4", "G4", "A-4", "G4", "F4", "E4"] + ["F4", "A-4", "D-4", "F4", "G4", "F4"]
+    turn = (2, 6, 10, 14)  # bars three, seven, eleven and fifteen: the trombone moves on beat three
+    alto, tenor, bass, beat = [], [], [], []
+    for bar, figure in enumerate(figures):
+        start = 4 * bar
+        tones = roman.RomanNumeral(figure, tonality).pitches
+        tuba, trombone, muted, third = (tones[number].transpose(octave) for number, octave in voicing[figure])
+        bass += line([4], [tuba], start)  # one root per bar, the pulse of the piece
+        tenor += line([2, 2], [trombone, third], start) if bar in turn else line([4], [trombone], start)
+        # bar seven: the muted trumpet rests on beats three and four, and Trumpet 1 answers above the silence
+        alto += line([2, 2], [muted, None], start) if bar == 6 else line([2, 2], [muted, muted], start)
+        if bar >= 8:  # the timpani enters with phrase three: one soft hit on beat one of bars nine to sixteen
+            beat += line([4], [timpani], start)
+    return [
+        part("Trumpet", 56, 72, line(lengths, [pitch.Pitch(name) for name in names])),
+        part("Muted Trumpet", 59, 56, alto),
+        part("Trombone", 57, 64, tenor),
+        part("Tuba", 58, 60, bass),
+        drums(40, beat),
+    ]
+
+
 @dataclass(frozen=True)
 class Song:
     """One song of the studio."""
@@ -254,6 +293,7 @@ CATALOG = [
     Song("little-lantern", "Little Lantern", "D major", 60, little_lantern),
     Song("copacabana-sunshine", "Copacabana Sunshine", "G major", 132, copacabana_sunshine),
     Song("brushfire-on-south-rampart", "Brushfire on South Rampart", "A blues", 132, brushfire_on_south_rampart),
+    Song("abendsegen", "Abendsegen — Evening Blessing", "F minor", 72, abendsegen),
 ]
 
 
