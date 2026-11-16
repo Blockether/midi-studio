@@ -29,3 +29,4 @@ def sync_check(ctx, request: str = "Describe the request here."):
         ctx.note(f"Stopped: {made.reason}")
         return {"decision": "stop", "reason": made.reason}
     return {"decision": "go", "files": [report(ctx).name]}
+# Changed in the editor.
