@@ -30,3 +30,4 @@ def sync_check(ctx, request: str = "Describe the request here."):
         return {"decision": "stop", "reason": made.reason}
     return {"decision": "go", "files": [report(ctx).name]}
 # Changed in the editor.
+# Changed in GitHub.
