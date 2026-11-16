@@ -48,3 +48,5 @@ def studio_review(ctx):
     if high or not inspection.tests_passed:
         made.append(fix_plan(ctx).name)
     return {"songs": len(inspection.songs), "findings": len(inspection.findings), "high": len(high), "tests_passed": inspection.tests_passed, "files": made}
+
+# Changed in GitHub.
